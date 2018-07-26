@@ -1,0 +1,34 @@
+stages:
+  - build
+  - deploy
+
+variables:
+    CI_DEBUG_TRACE: "False"
+
+before_script:
+  - echo $CI_BUILD_REF
+  - echo $CI_PROJECT_DIR
+  - echo $CI_PROJECT_NAME
+
+build-project:
+  stage: build
+  tags:
+    - main
+  script:
+    - rsync -rv $CI_PROJECT_DIR ~/scripts --exclude=.git --exclude=.gitlab-ci.yml --exclude=ci_scripts
+
+staging_deploy:
+  stage: deploy
+  tags:
+    - main
+  script:
+    - . ci_scripts/deploy.sh ${STAGING_SERVER_LIST}
+  when: manual
+
+production_deploy:
+  stage: deploy
+  tags:
+    - main
+  script:
+    - . ci_scripts/deploy.sh ${PRODUCTION_SERVER_LIST}
+  when: manual

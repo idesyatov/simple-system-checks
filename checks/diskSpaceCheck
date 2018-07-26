@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+
+# export variable:
+# ${config_path}
+# ${date_now}
+
+source ${config_path}
+
+trigger_disk=${trigger_settings[trigger_hard_disk_is_used]}
+
+disk=${system_checks_settings[target_hard_disk]}
+
+
+function AvailabilityDiskCheck(){
+    local disk=${disk}
+    local check=`df -m | grep ${disk} | awk '{print $1}'`
+    if [[ ${check} == ${disk} ]]
+    then
+        DiskSpaceCheck
+    else
+        local message="[WARN] On the Server: \"`hostname`\". Not found ${disk}"
+        echo ${message} | ${work_dir}/notification/telegram # sent to telegram
+        echo -e "${date_now} ${message}"
+    fi
+}
+
+function DiskSpaceCheck(){
+    local freeSpace=`df -m | grep ${disk} | awk '{print $4}'` # Free disk space in MB
+    local message="On the Server: \"`hostname`\". Used: ${disk} \
+free space - `df -m -h | grep ${disk} | awk '{print $4}'` of \
+`df -m -h | grep ${disk} | awk '{print $2}'`"
+
+    if [[ ${freeSpace} -lt ${trigger_disk} ]];
+    then
+        echo -e "[WARN] ${message}" | ${work_dir}/notification/telegram # sent to telegram
+        echo -e "${date_now} [WARN] ${message}"
+    else
+        echo -e "${date_now} [INFO] ${message}"
+    fi
+}
+
+AvailabilityDiskCheck

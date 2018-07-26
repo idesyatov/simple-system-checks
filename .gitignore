@@ -1,0 +1,6 @@
+# mf: `git rm --cached -r .idea`
+
+.idea
+.idea/*
+test/*
+local_config

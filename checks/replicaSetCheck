@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+
+# export variable:
+# ${config_path}
+# ${date_now}
+
+source ${config_path}
+
+HOST1=${replicaSet_settings[ARBITER]}     # ARBITER    priority 0
+HOST2=${replicaSet_settings[SECONDARY]}   # SECONDARY  priority 4
+HOST3=${replicaSet_settings[PRIMARY]}     # PRIMARY    priority 5
+
+DB=${replicaSet_settings[DateBase]}
+RS=${replicaSet_settings[ReplicaSet]}
+
+function GetReplicaSetStatus(){
+    # get replica set status in JSON
+    mongo --host "mongodb://${HOST1},${HOST2},${HOST3}/${DB}?replicaSet=${RS}" <<EOF
+    db.isMaster()
+EOF
+}
+
+function checkMaster(){
+    local gottenStat=`GetReplicaSetStatus`
+
+    # search primary host
+    local masterNow=`echo ${gottenStat} | \
+        grep -P -o "\"primary\"\s:\s\"(\d{1,3}\.){3}\d{1,3}(\:\d{1,5}||)\"" | \
+        awk '{print substr($3, 2, length($3)-2)}'`
+
+    if [[ ${masterNow} == "" ]];
+    then
+        local message="Host: \"`hostname`\". Something wrong, cannot check DB master, "
+        echo -e "[ALERT] ${message}" | ${work_dir}/notification/telegram # sent to telegram
+        echo -e "${date_now} [ALERT] ${message}"
+
+    else
+
+        local message="Host: \"`hostname`\". Something wrong, changed primary DB host. \
+New master: ${masterNow}"
+
+        # compare actual replica master with priority master
+        if [[ ${masterNow} != ${HOST3} ]];
+        then
+            echo -e "[ALERT] ${message}" | ${work_dir}/notification/telegram # sent to telegram
+            echo -e "${date_now} [ALERT] ${message}"
+        else
+            echo -e "${date_now} [INFO] No changes in replica set. Master: ${HOST3}"
+        fi
+    fi
+}
+
+checkMaster

@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+# export variable:
+# ${config_path}
+# ${date_now}
+
+source ${config_path}
+
+function checkServiceStatus(){
+
+    local result=`service ${item} status | grep Active | awk '{ print $2 }'`
+    local message="On the Server: \"`hostname`\". Service: ${item} status: ${result}"
+
+    if [[ ${result} != "active" ]]
+
+    then
+        echo "[WARN] ${message}" | ${work_dir}/notification/telegram # sent to telegram
+        echo -e "${date_now} [WARN] ${message}"
+    else
+        echo -e "${date_now} [INFO] ${message}"
+    fi
+}
+
+if [ $# ]; then for item in $@; do checkServiceStatus ${item}; done; fi

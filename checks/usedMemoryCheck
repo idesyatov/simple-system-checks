@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+
+# export variable:
+# ${config_path}
+# ${date_now}
+
+source ${config_path}
+
+trigger_ram_memory=${trigger_settings[trigger_ram_is_used]}
+
+function checkUsedMemory(){
+    local usedMemory=`free -m | grep Mem | awk '{print $3}'`
+    local totalMemory=`free -m | grep Mem | awk '{print $2}'`
+
+    let "max_used=${totalMemory} * ${trigger_ram_memory} / 100"
+
+    local message="On the Server: \"`hostname`\". Mem used: \
+`free -m -h | grep Mem | awk '{print $3}'` of `free -m -h | grep Mem | awk '{print $2}'`. \
+Swap used: `free -m -h | grep Swap | awk '{print $3}'` of \
+`free -m -h | grep Swap | awk '{print $2}'`"
+
+    if [[ ${usedMemory} -ge ${max_used} ]];
+    then
+        echo -e "[WARN] ${message}"| ${work_dir}/notification/telegram # sent to telegram
+        echo -e "${date_now} [WARN] ${message}"
+    else
+        echo -e "${date_now} [INFO] ${message}"
+    fi
+}
+
+checkUsedMemory
+

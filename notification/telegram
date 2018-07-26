@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+# Example: echo "Hello" | this_file.sh
+
+source ${config_path}
+
+message=$( cat )
+
+function send {
+        curl -s \
+        -X POST \
+        https://api.telegram.org/bot${telegram_settings[apiToken]}/sendMessage \
+        -d text="$message" \
+        -d chat_id=${telegram_settings[chatId]}
+}
+
+
+if [[ ! -z "$message" ]]; then
+    send
+fi
+

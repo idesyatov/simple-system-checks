@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+# Example config file
+
+
+declare -A telegram_settings=(
+
+# example token
+    ["apiToken"]="apiToken=100777666:AAAuEEEEF_6noWFMoCS_-DXFOlpOE5u888F" \
+
+# example chat id
+    ["chatId"]="0777666" \
+)
+
+
+
+declare -A system_checks_settings=(
+
+# disk for monitoring
+    ["target_hard_disk"]="/dev/sda1" \
+)
+
+# services
+services_array=(
+    nginx
+    docker
+)
+
+
+
+declare -A trigger_settings=(
+
+# maximum disk use in MB
+    ["trigger_hard_disk_is_used"]="300000" \
+
+# maximum "RAM" use in percentage
+    ["trigger_ram_is_used"]="50"
+)
+
+
+
+declare -A replicaSet_settings=(
+    ["DateBase"]="test"
+    ["ReplicaSet"]="test"
+
+    ["ARBITER"]="127.0.0.1:30001"
+    ["SECONDARY"]="127.0.0.1:30002"
+    ["PRIMARY"]="127.0.0.1:30003"
+)
+
